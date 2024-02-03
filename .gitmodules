@@ -1,0 +1,4 @@
+[submodule "redash"]
+	path = src/redash
+	url = git@github.com:getredash/redash.git
+	branch = main

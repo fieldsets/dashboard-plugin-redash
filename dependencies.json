@@ -1,0 +1,18 @@
+{
+    "schemas":[],
+    "plugins":[
+        {
+            "name": "redis",
+            "token": "cache-plugin-redis",
+            "url": "git@github.com:fieldsets/cache-plugin-redis.git"
+        }
+    ],
+    "packages":[],
+    "containers": [
+        {
+            "name": "postgres",
+            "token": "db-postgres",
+            "url": "git@github.com:fieldsets/db-postgres.git"
+        }
+    ]
+}

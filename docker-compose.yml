@@ -1,0 +1,69 @@
+version: "3.7"
+x-redash-service: &redash-service
+  build:
+    context: .
+    args:
+      skip_frontend_build: ""  # set to empty string to build
+      UID: ${LOCAL_UID:-1000}
+      GID: ${LOCAL_GID:-1000}
+  volumes:
+    - .:/app
+  env_file:
+    - .env
+x-redash-environment: &redash-environment
+  REDASH_LOG_LEVEL: "INFO"
+  REDASH_REDIS_URL: "redis://${REDIS_HOST:-0.0.0.0}:${REDIS_PORT:-6379}/${REDIS_INDEX:-0}"
+  REDASH_DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-fieldsets}@${POSTGRES_HOST:-0.0.0.0}/${DASHBOARD_DB_NAME:-dashboard}"
+  REDASH_RATELIMIT_ENABLED: "false"
+  REDASH_MAIL_DEFAULT_SENDER: "dashboard@fieldsets.org"
+  REDASH_MAIL_SERVER: "${MAIL_SERVER:-fieldsets-email}"
+  REDASH_ENFORCE_CSRF: "true"
+  REDASH_GUNICORN_TIMEOUT: 60
+  PUID: ${LOCAL_UID:-1000}
+  PGID: ${LOCAL_GID:-1000}
+
+services:
+  fieldsets-dashboard:
+    <<: *redash-service
+    image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash:${VERSION:-latest}
+    container_name: fieldsets-dashboard
+    hostname: fieldsets-dashboard
+    command: dev_server
+    ports:
+      - "5000:5000"
+      - "5678:5678"
+    environment:
+      <<: *redash-environment
+      PYTHONUNBUFFERED: 0
+    volumes:
+      - dashboard-data:/home/redash/data
+  fieldsets-dashboard-scheduler:
+    <<: *redash-service
+    image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash-scheduler:${VERSION:-latest}
+    container_name: fieldsets-dashboard-scheduler
+    hostname: fieldsets-dashboard-scheduler
+    command: dev_scheduler
+    depends_on:
+      - fieldsets-dashboard
+    environment:
+      <<: *redash-environment
+    volumes:
+      - dashboard-data:/home/redash/data
+  fieldsets-dashboard-worker:
+    <<: *redash-service
+    image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash-worker:${VERSION:-latest}
+    container_name: fieldsets-dashboard-worker
+    hostname: fieldsets-dashboard-worker
+    command: dev_worker
+    depends_on:
+      - fieldsets-dashboard
+    environment:
+      <<: *redash-environment
+      PYTHONUNBUFFERED: 0
+    volumes:
+      - dashboard-data:/home/redash/data
+
+volumes:
+    dashboard-data:
+        driver: local
+        name: dashboard-data
