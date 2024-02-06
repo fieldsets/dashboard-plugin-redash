@@ -6,19 +6,32 @@ x-redash-service: &redash-service
       skip_frontend_build: ""  # set to empty string to build
       UID: ${LOCAL_UID:-1000}
       GID: ${LOCAL_GID:-1000}
-  volumes:
-    - .:/app
-  env_file:
-    - .env
+
 x-redash-environment: &redash-environment
+  ENVIRONMENT: ${ENVIRONMENT:-dev-local}
+  DASHBOARD_DB: ${DASHBOARD_DB:-dashboard}
+  DASHBOARD_DB_USER: ${DASHBOARD_DB_USER:-postgres}
+  DASHBOARD_DB_HOST: ${DASHBOARD_DB_HOST:-0.0.0.0}
+  DASHBOARD_DB_PASSWORD: ${DASHBOARD_DB_PASSWORD:-fieldsets}
+  DASHBOARD_DB_PORT: ${DASHBOARD_DB_PORT:-5432}
+  DASHBOARD_HOST: ${DASHBOARD_HOST:-0.0.0.0}
+  DASHBOARD_SCHEDULER_HOST: ${DASHBOARD_SCHEDULER_HOST:-0.0.0.0}
+  DASHBOARD_WORKER_HOST: ${DASHBOARD_WORKER_HOST:-0.0.0.0}
+  POSTGRES_USER: ${POSTGRES_USER:-postgres}
+  POSTGRES_HOST: ${POSTGRES_HOST:-0.0.0.0}
+  POSTGRES_DB: ${POSTGRES_DB:-fieldsets}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fieldsets}
+  POSTGRES_PORT: ${POSTGRES_PORT:-5432}
   REDASH_LOG_LEVEL: "INFO"
-  REDASH_REDIS_URL: "redis://${REDIS_HOST:-0.0.0.0}:${REDIS_PORT:-6379}/${REDIS_INDEX:-0}"
-  REDASH_DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-fieldsets}@${POSTGRES_HOST:-0.0.0.0}/${DASHBOARD_DB_NAME:-dashboard}"
+  REDASH_REDIS_URL: "redis://${REDIS_HOST:-0.0.0.0}:${REDIS_PORT:-6379}/${DASHBOARD_CACHE_INDEX:-0}"
+  REDASH_DATABASE_URL: "postgresql://${DASHBOARD_DB_USER:-postgres}:${DASHBOARD_DB_PASSWORD:-fieldsets}@${DASHBOARD_DB_HOST:-0.0.0.0}:${DASHBOARD_DB_PORT:-5432}/${DASHBOARD_DB:-dashboard}"
   REDASH_RATELIMIT_ENABLED: "false"
-  REDASH_MAIL_DEFAULT_SENDER: "dashboard@fieldsets.org"
-  REDASH_MAIL_SERVER: "${MAIL_SERVER:-fieldsets-email}"
+  REDASH_MAIL_DEFAULT_SENDER: "${MAIL_SENDER_ADDRESS:-dashboard@fieldsets.org}"
+  REDASH_MAIL_SERVER: "${MAIL_SERVER:-0.0.0.0}"
   REDASH_ENFORCE_CSRF: "true"
   REDASH_GUNICORN_TIMEOUT: 60
+  REDASH_COOKIE_SECRET: ${REDASH_COOKIE_SECRET}
+  REDASH_SECRET_KEY: ${REDASH_SECRET_KEY}
   PUID: ${LOCAL_UID:-1000}
   PGID: ${LOCAL_GID:-1000}
 
@@ -28,7 +41,11 @@ services:
     image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash:${VERSION:-latest}
     container_name: fieldsets-dashboard
     hostname: fieldsets-dashboard
-    command: dev_server
+    #command: dev_server
+    command: server
+    depends_on:
+      - fieldsets-local
+    tty: ${ENABLE_TERMINAL:-false}
     ports:
       - "5000:5000"
       - "5678:5678"
@@ -42,7 +59,8 @@ services:
     image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash-scheduler:${VERSION:-latest}
     container_name: fieldsets-dashboard-scheduler
     hostname: fieldsets-dashboard-scheduler
-    command: dev_scheduler
+    #command: dev_scheduler
+    command: scheduler
     depends_on:
       - fieldsets-dashboard
     environment:
@@ -54,7 +72,8 @@ services:
     image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash-worker:${VERSION:-latest}
     container_name: fieldsets-dashboard-worker
     hostname: fieldsets-dashboard-worker
-    command: dev_worker
+    #command: dev_worker
+    command: worker
     depends_on:
       - fieldsets-dashboard
     environment:

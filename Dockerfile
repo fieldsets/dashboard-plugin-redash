@@ -1,7 +1,8 @@
-FROM node:lts-bullseye-slim as frontend-builder
+FROM node:16-bullseye-slim as frontend-builder
 
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
+    ca-certificates \
     git-core && \
   apt-get clean
 
@@ -25,14 +26,15 @@ COPY --chown=redash ./src/redash/viz-lib /frontend/viz-lib
 ARG code_coverage
 ENV BABEL_ENV=${code_coverage:+test}
 
-#RUN if [ "x$skip_frontend_build" = "x" ] ; then yarn --frozen-lockfile --network-concurrency 1; fi
-RUN if [ "x$skip_frontend_build" = "x" ] ; then yarn --network-concurrency 1; fi
+
+RUN if [ "x$skip_frontend_build" = "x" ] ; then yarn --frozen-lockfile --network-concurrency 1; fi
+#RUN if [ "x$skip_frontend_build" = "x" ] ; then yarn --network-concurrency 1; fi
 
 COPY --chown=redash ./src/redash/client /frontend/client
 COPY --chown=redash ./src/redash/webpack.config.js /frontend/
 RUN if [ "x$skip_frontend_build" = "x" ] ; then yarn build; else mkdir -p /frontend/client/dist && touch /frontend/client/dist/multi_org.html && touch /frontend/client/dist/index.html; fi
 
-FROM python:3.7-slim-bullseye
+FROM python:3.8-slim-bullseye
 
 EXPOSE 5000
 
@@ -43,9 +45,10 @@ ARG skip_dev_deps
 
 RUN useradd --create-home redash
 
-# Ubuntu packages
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
+    ca-certificates \
+    pkg-config \
     curl \
     gnupg \
     build-essential \
@@ -57,6 +60,7 @@ RUN apt-get update && \
     libkrb5-dev \
     # Postgres client
     libpq-dev \
+    postgresql-client \
     # ODBC support:
     unixodbc \
     g++ \
@@ -99,7 +103,7 @@ ENV POETRY_HOME=/etc/poetry
 ENV POETRY_VIRTUALENVS_CREATE=false
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-COPY pyproject.toml poetry.lock ./
+COPY ./src/redash/pyproject.toml ./src/redash/poetry.lock ./
 
 ARG POETRY_OPTIONS="--no-root --no-interaction --no-ansi"
 # for LDAP authentication, install with `ldap3` group
@@ -107,10 +111,16 @@ ARG POETRY_OPTIONS="--no-root --no-interaction --no-ansi"
 ARG install_groups="main,all_ds,dev,ldap3"
 RUN /etc/poetry/bin/poetry install --only $install_groups $POETRY_OPTIONS
 
-COPY --chown=redash ./src/redash/ /app
+COPY --chown=redash ./src/redash/ /app/
+COPY --chown=redash ./entrypoint.sh /docker-entrypoint.sh
+COPY --chown=redash ./init/ /docker-entrypoint-init.d/
+
 COPY --from=frontend-builder --chown=redash /frontend/client/dist /app/client/dist
+RUN mkdir /data/
+RUN chown redash /data
 RUN chown redash /app
+RUN chown redash /etc/environment
 USER redash
 
-ENTRYPOINT ["/app/bin/docker-entrypoint"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["server"]

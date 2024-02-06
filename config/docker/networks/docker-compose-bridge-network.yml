@@ -1,0 +1,34 @@
+services:
+    fieldsets-dashboard:
+      networks:
+        default:
+          ipv4_address: ${DASHBOARD_HOST:-172.28.0.50}
+      logging:
+        driver: fluentd
+        options:
+          fluentd-address: ${LOGGER_HOST:-172.28.0.2}:${LOGGER_PORT:-24224}
+          tag: debug_log.redash
+          fluentd-async: "true"
+          env: "PGOPTIONS='-c search_path=pipeline',LOGGING_ENABLED='${LOGGING_ENABLED:-false}'"
+    fieldsets-dashboard-scheduler:
+      networks:
+        default:
+          ipv4_address: ${DASHBOARD_SCHEDULER_HOST:-172.28.0.51}
+      logging:
+        driver: fluentd
+        options:
+          fluentd-address: ${LOGGER_HOST:-172.28.0.2}:${LOGGER_PORT:-24224}
+          tag: debug_log.redash
+          fluentd-async: "true"
+          env: "PGOPTIONS='-c search_path=pipeline',LOGGING_ENABLED='${LOGGING_ENABLED:-false}'"
+    fieldsets-dashboard-worker:
+      networks:
+        default:
+          ipv4_address: ${DASHBOARD_WORKER_HOST:-172.28.0.52}
+      logging:
+        driver: fluentd
+        options:
+          fluentd-address: ${LOGGER_HOST:-172.28.0.2}:${LOGGER_PORT:-24224}
+          tag: debug_log.redash
+          fluentd-async: "true"
+          env: "PGOPTIONS='-c search_path=pipeline',LOGGING_ENABLED='${LOGGING_ENABLED:-false}'"

@@ -1,0 +1,29 @@
+services:
+    fieldsets-dashboard:
+      network_mode: host
+      logging:
+        driver: fluentd
+        options:
+          fluentd-address: ${LOGGER_HOST:-0.0.0.0}:${LOGGER_PORT:-24224}
+          tag: debug_log.redash
+          fluentd-async: "true"
+          env: "PGOPTIONS='-c search_path=pipeline',LOGGING_ENABLED='${LOGGING_ENABLED:-false}'"
+    fieldsets-dashboard-scheduler:
+      network_mode: host
+      logging:
+        driver: fluentd
+        options:
+          fluentd-address: ${LOGGER_HOST:-0.0.0.0}:${LOGGER_PORT:-24224}
+          tag: debug_log.redash
+          fluentd-async: "true"
+          env: "PGOPTIONS='-c search_path=pipeline',LOGGING_ENABLED='${LOGGING_ENABLED:-false}'"
+    fieldsets-dashboard-worker:
+      network_mode: host
+      logging:
+        driver: fluentd
+        options:
+          fluentd-address: ${LOGGER_HOST:-0.0.0.0}:${LOGGER_PORT:-24224}
+          tag: debug_log.redash
+          fluentd-async: "true"
+          env: "PGOPTIONS='-c search_path=pipeline',LOGGING_ENABLED='${LOGGING_ENABLED:-false}'"
+

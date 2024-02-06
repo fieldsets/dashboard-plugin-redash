@@ -1,0 +1,9 @@
+services:
+    fieldsets-local:
+      environment:
+        DASHBOARD_DB: ${DASHBOARD_DB:-dashboard}
+        DASHBOARD_DB_USER: ${DASHBOARD_DB_USER:-postgres}
+        DASHBOARD_DB_HOST: ${DASHBOARD_DB_HOST:-0.0.0.0}
+        DASHBOARD_DB_PASSWORD: ${DASHBOARD_DB_PASSWORD:-fieldsets}
+        DASHBOARD_DB_PORT: ${DASHBOARD_DB_PORT:-5432}
+        DASHBOARD_HOST: ${DASHBOARD_HOST:-0.0.0.0}
