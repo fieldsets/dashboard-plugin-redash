@@ -6,6 +6,7 @@ x-redash-service: &redash-service
       skip_frontend_build: ""  # set to empty string to build
       UID: ${LOCAL_UID:-1000}
       GID: ${LOCAL_GID:-1000}
+      BUILD_CONTEXT_PATH: ./
 
 x-redash-environment: &redash-environment
   ENVIRONMENT: ${ENVIRONMENT:-dev-local}

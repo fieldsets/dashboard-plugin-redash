@@ -1,11 +1,15 @@
 FROM node:16-bullseye-slim as frontend-builder
 
+ARG BUILD_CONTEXT_PATH
+COPY ${BUILD_CONTEXT_PATH}bin/root-certs.sh /root/.local/bin/root-certs.sh
+COPY ${BUILD_CONTEXT_PATH}cert[s]/* /tmp/certs/
+
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
     ca-certificates \
     git-core && \
-  apt-get clean
-
+  apt-get clean && \
+  bash /root/.local/bin/root-certs.sh /tmp/certs/
 
 RUN npm install --global --force yarn@1.22.19
 
@@ -26,7 +30,6 @@ COPY --chown=redash ./src/redash/viz-lib /frontend/viz-lib
 ARG code_coverage
 ENV BABEL_ENV=${code_coverage:+test}
 
-
 RUN if [ "x$skip_frontend_build" = "x" ] ; then yarn --frozen-lockfile --network-concurrency 1; fi
 #RUN if [ "x$skip_frontend_build" = "x" ] ; then yarn --network-concurrency 1; fi
 
@@ -42,6 +45,9 @@ EXPOSE 5000
 ARG skip_ds_deps
 # Controls whether to install dev dependencies.
 ARG skip_dev_deps
+
+COPY ${BUILD_CONTEXT_PATH}bin/root-certs.sh /root/.local/bin/root-certs.sh
+COPY ${BUILD_CONTEXT_PATH}cert[s]/* /tmp/certs/
 
 RUN useradd --create-home redash
 
@@ -77,7 +83,8 @@ RUN apt-get update && \
     libedit-dev \
     libsasl2-modules-gssapi-mit && \
   apt-get clean && \
-  rm -rf /var/lib/apt/lists/*
+  rm -rf /var/lib/apt/lists/* && \
+  bash /root/.local/bin/root-certs.sh /tmp/certs/
 
 ARG TARGETPLATFORM
 ARG databricks_odbc_driver_url=https://databricks-bi-artifacts.s3.us-east-2.amazonaws.com/simbaspark-drivers/odbc/2.6.26/SimbaSparkODBC-2.6.26.1045-Debian-64bit.zip
@@ -101,7 +108,8 @@ WORKDIR /app
 ENV POETRY_VERSION=1.6.1
 ENV POETRY_HOME=/etc/poetry
 ENV POETRY_VIRTUALENVS_CREATE=false
-RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN mkdir -p /etc/poetry
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/etc/poetry python3 -
 
 COPY ./src/redash/pyproject.toml ./src/redash/poetry.lock ./
 
@@ -109,7 +117,9 @@ ARG POETRY_OPTIONS="--no-root --no-interaction --no-ansi"
 # for LDAP authentication, install with `ldap3` group
 # disabled by default due to GPL license conflict
 ARG install_groups="main,all_ds,dev,ldap3"
-RUN /etc/poetry/bin/poetry install --only $install_groups $POETRY_OPTIONS
+RUN type -P /root/.certs/ca-certificate.crt &>/dev/null && \
+  /etc/poetry/bin/poetry install --only $install_groups $POETRY_OPTIONS || \
+  REQUESTS_CA_BUNDLE=/root/.certs/ca-certificate.crt /etc/poetry/bin/poetry install --only $install_groups $POETRY_OPTIONS
 
 COPY --chown=redash ./src/redash/ /app/
 COPY --chown=redash ./entrypoint.sh /docker-entrypoint.sh

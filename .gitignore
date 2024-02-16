@@ -3,6 +3,12 @@
 .gitkeep
 .log
 
+./certs/*
+!./certs
+!./certs/README.md
+*.pem
+*.crt
+
 # Editor output
 .vscode/
 .editorconfig
