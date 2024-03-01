@@ -37,7 +37,6 @@ create_db() {
 	EOSQL
     psql -v ON_ERROR_STOP=1 --host "${DASHBOARD_DB_HOST}" --port "${DASHBOARD_DB_PORT}" --username "${DASHBOARD_DB_USER}" --dbname "postgres" <<-EOSQL
         CREATE EXTENSION IF NOT EXISTS postgres_fdw;
-        CREATE SCHEMA IF NOT EXISTS fieldsets;
 	EOSQL
 }
 
@@ -49,7 +48,7 @@ init() {
     echo "Initializing DB...."
     CURRENT_HOST=$(hostname)
     if [[ "${CURRENT_HOST}" = "fieldsets-dashboard" ]]; then
-        create_db    
+        create_db
         exec /app/manage.py database create_tables
     fi;
     echo "DB Initialized."
