@@ -39,7 +39,7 @@ x-redash-environment: &redash-environment
 services:
   fieldsets-dashboard:
     <<: *redash-service
-    image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash:${VERSION:-latest}
+    image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash:${DASHBOARD_VERSION:-latest}
     container_name: fieldsets-dashboard
     hostname: fieldsets-dashboard
     #command: dev_server
@@ -57,7 +57,7 @@ services:
       - dashboard-data:/home/redash/data
   fieldsets-dashboard-scheduler:
     <<: *redash-service
-    image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash-scheduler:${VERSION:-latest}
+    image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash-scheduler:${DASHBOARD_VERSION:-latest}
     container_name: fieldsets-dashboard-scheduler
     hostname: fieldsets-dashboard-scheduler
     #command: dev_scheduler
@@ -70,7 +70,7 @@ services:
       - dashboard-data:/home/redash/data
   fieldsets-dashboard-worker:
     <<: *redash-service
-    image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash-worker:${VERSION:-latest}
+    image: ${CONTAINER_REGISTRY:-fieldsets}/dashboard-plugin-redash-worker:${DASHBOARD_VERSION:-latest}
     container_name: fieldsets-dashboard-worker
     hostname: fieldsets-dashboard-worker
     #command: dev_worker

@@ -6,7 +6,7 @@ set -e
 
 export PRIORITY=10
 export PGPASSWORD="${DASHBOARD_DB_PASSWORD}"
-LOCKFILE_PATH="/data/checkpoints/${ENVIRONMENT}/plugins/dashboard-plugin-redash/"
+LOCKFILE_PATH="/checkpoints/${ENVIRONMENT}/plugins/dashboard-plugin-redash/"
 LOCKFILE="${PRIORITY}-import-foreign-data.complete"
 
 mkdir -p "${LOCKFILE_PATH}"

@@ -13,7 +13,7 @@ set -eEa -o pipefail
 #===
 export PGPASSWORD="${DASHBOARD_DB_PASSWORD}"
 export PRIORITY=1
-LOCKFILE_PATH="/data/checkpoints/${ENVIRONMENT}/plugins/dashboard-plugin-redash/"
+LOCKFILE_PATH="/checkpoints/${ENVIRONMENT}/plugins/dashboard-plugin-redash/"
 LOCKFILE="0${PRIORITY}-init-db.complete"
 
 
