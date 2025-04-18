@@ -1,0 +1,7 @@
+{
+    "name": "Fieldsets Redash Dashboard Plugin",
+    "token": "dashboard-plugin-redash",
+    "version": "1.0.0",
+    "priority": "20",
+    "enabled": false
+}
